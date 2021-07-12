@@ -40,15 +40,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
     //timer
 
-    const deadline = '2021-08-10';
+    const deadline = '2021-08-10'; // константа окончания таймера
 
-    function getTimeRemaning(endtime) {
-        const t = Date.parse(endtime) - new Date(),
-              days = Math.floor(t / (1000 * 60 * 60 * 24)),
-              hours = Math.floor((t / (1000 * 60 * 60) % 24)),
-              minutes = Math.floor((t / 1000 / 60) % 60),
-              seconds = Math.floor((t / 1000) % 60);
-        
+    function getTimeRemaning(endtime) { //функция которая получает разницу между текущим временем и дедлайном
+        const t = Date.parse(endtime) - new Date(), //получаем разницу между датами в милисекундах 
+              days = Math.floor(t / (1000 * 60 * 60 * 24)), //вычисляем дни
+              hours = Math.floor((t / (1000 * 60 * 60) % 24)), //вычисляем часы
+              minutes = Math.floor((t / 1000 / 60) % 60),  //вычисляем минуты
+              seconds = Math.floor((t / 1000) % 60);  //вычисляем секунды
+        //возвращаем переменные в виде объекта
         return {
             'total': t,
             'days': days,
@@ -57,38 +57,38 @@ window.addEventListener('DOMContentLoaded', ()=>{
             'seconds': seconds
         };
     }
-
+    //функция для добавления нуля перед число если оно меньше 10
     function getZero(num){
-        if(num >= 0 && num < 10){
+        if(num >= 0 && num < 10){ //если больше нуля и меньше 10
             return `0${num}`;
         } else {
             return num;
         }
     }
 
-    function setClock(selector, endtime) {
-        const timer = document.querySelector(selector),
-              days = timer.querySelector('#days'),
-              hours = timer.querySelector('#hours'),
-              minutes = timer.querySelector('#minutes'),
-              seconds= timer.querySelector('#seconds'),
-              timeInterval = setInterval(updateClock, 1000);
+    function setClock(selector, endtime) { //функция установки таймера на страницу 
+        const timer = document.querySelector(selector), //получение таймера со страницы
+              days = timer.querySelector('#days'), //дни
+              hours = timer.querySelector('#hours'), //часы
+              minutes = timer.querySelector('#minutes'), //минуты
+              seconds= timer.querySelector('#seconds'), //секунды
+              timeInterval = setInterval(updateClock, 1000); //обновление таймера каждую секунду
 
-        updateClock();
+        updateClock(); //Вызов функции чтобы не было задержки на странице в 1 секунду
 
-        function updateClock() {
-            const t = getTimeRemaning(endtime);
+        function updateClock() { //для обновления даты
+            const t = getTimeRemaning(endtime); //получение объекта
 
-            days.innerHTML = getZero(t.days);
-            hours.innerHTML = getZero(t.hours);
-            minutes.innerHTML = getZero(t.minutes);
-            seconds.innerHTML = getZero(t.seconds);
-
+            days.innerHTML = getZero(t.days); //Вывод дней
+            hours.innerHTML = getZero(t.hours); //Вывод часов
+            minutes.innerHTML = getZero(t.minutes); //Вывод минут
+            seconds.innerHTML = getZero(t.seconds); //Вывод секунд
+            //если дедлайн наступил, то очистить интервал
             if(t.total <= 0){
                 clearInterval(timeInterval);
             }
         }   
     }
-
+    //Вызов таймера
     setClock('.timer', deadline);
 });
