@@ -97,23 +97,25 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
     const modal = document.querySelector('.modal'), //обертка модального окна
           open = document.querySelectorAll('[data-modal]'), //кнопка окрытия модального окна
-          modalTimerId = setTimeout(openModal, 50000); //Таймер появления модального окна
+          modalTimerId = setTimeout(openModal, 300000); //Таймер появления модального окна
+
+    open.forEach(item =>{
+        item.addEventListener('click', openModal);
+    });
         
     function openModal() { //функция показа модального окна
-        modal.classList.toggle('show');
+        modal.classList.add('show');
+        modal.classList.remove('hide');
         document.body.style.overflow = 'hidden'; //убирает скролл при открытом модальном окне
         clearInterval(modalTimerId); //очищает интервал если юзер самостоятельно его открыл
     }
 
     function closeModal() { //функция закрытия модального окна
-        modal.classList.toggle('show');
+        modal.classList.add('hide');
+        modal.classList.remove('show');
         document.body.style.overflow = ''; //Ставится по умолчанию браузером
     }
-    //обработчики события
-    open.forEach(item =>{
-        item.addEventListener('click', openModal);
-    });
-    
+   
     //Обработчик события на закрытие по клику на подложку (вне модального окна) или по кнопке
     modal.addEventListener('click', (e)=>{
         if(e.target === modal || e.target.getAttribute('data-close') == ''){
@@ -216,7 +218,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     const forms = document.querySelectorAll('form'); // формы
 
     const message = {
-        loading: 'icons/spinner.svg',
+        loading: 'img/form/spinner.svg',
         success: 'Спасибо, мы скоро с вами свяжемся',
         failure: 'Что-то пошло не так...'
     };
@@ -228,8 +230,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
     function postData(form) { //функция отправки данных с формы
         form.addEventListener('submit', (e) =>{ //обработчик на форму (отправить)
             e.preventDefault(); //убрать дефолтное поведение
-
-            const statusMess = document.createElement('img');
+            
+            //спиннер
+            let statusMess = document.createElement('img');
             statusMess.src = message.loading;
             statusMess.style.cssText = `
                 display: block;
@@ -237,10 +240,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
             `;
             form.insertAdjacentElement('afterend', statusMess);
 
-            const request = new XMLHttpRequest(); //объект запроса
-            request.open('POST', 'server.php'); //настройки
-
-            request.setRequestHeader('Content-type', 'application/json'); //заголовки запроса
             const formData = new FormData(form); // объект для передачи данных форм на сервер
 
             const object = {};
@@ -248,18 +247,24 @@ window.addEventListener('DOMContentLoaded', ()=>{
                 object[key] = value; //запись данных формы в объект в формате ключ значение
             });
 
-            const json = JSON.stringify(object); //в JSON
-
-            request.send(json); //отправка
-
-            request.addEventListener('load', () =>{ //обработчик на отслеживание статуса
-                if(request.status === 200){
-                    showThanksModal(message.success);
-                    form.reset(); //очистка форм
-                    statusMess.remove(); //удаление сообщения спустя 2 сек
-                } else {
-                    showThanksModal(message.failure);
-                }
+            fetch('server1.php', { //отправка данных с помощью fetch
+                method: 'POST', //метод передачи данных
+                headers: { //заголовки для JSON
+                    'Content-type' :  'application/json'
+                },
+                body: JSON.stringify(object) //данные из формы в JSON
+            })
+            .then(data => data.text()) //Получаем данные в текстовом виде 
+            .then(data =>{ //выводим
+                console.log(data);
+                showThanksModal(message.success);
+                statusMess.remove(); //удаление спиннера
+            })
+            .catch(() =>{ //ошибка
+                showThanksModal(message.failure);
+            })
+            .finally(() =>{ 
+                form.reset(); //очистка форм
             });
         });
     }
@@ -268,13 +273,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
         const prevModalDialog = document.querySelector('.modal__dialog'); //Получаем контент модального окна
 
         prevModalDialog.classList.add('hide'); //прячем его
-        openModal();//вызываем функцию открытия окна без контента
+        openModal();//вызываем функцию открытия окна
 
         const thanksModal = document.createElement('div'); //создаем новый контейнер для сообщения
         thanksModal.classList.add('modal__dialog'); //добавляем ему класс обертки контента
         thanksModal.innerHTML = `
             <div class="modal__content">
-                <div class="modal__close" data-close>&times;</div>
+                <div class="modal__close" data-close>×</div>
                 <div class="modal__title">${message}</div>
             </div> 
         `;//верстаем сообщение
@@ -287,4 +292,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
             closeModal();
         }, 4000); //устанавливаем задержку удаления сообщения модального
     }
+
+  
 });
