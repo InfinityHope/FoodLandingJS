@@ -160,58 +160,66 @@ window.addEventListener('DOMContentLoaded', ()=>{
             this.price = this.price * this.transfer;
         }
         //Метод который рендерит карточку на страницу
-        render() {
-            const element = document.createElement('div'); //создание элемента
-            // Проверка rest оператора если он пуст то ставится значение по умолчанию если нет то формируется массив классов
-            if(this.classes.length === 0){
-                this.element = 'menu__item';
-                element.classList.add(this.element);
-            } else {
-                this.classes.forEach(className => element.classList.add(className));
-            } 
-            element.innerHTML = `
-                    <img src="${this.src}" alt="${this.alt}">
-                    <h3 class="menu__item-subtitle">Меню ${this.title}</h3>
-                    <div class="menu__item-descr">${this.text}</div>
-                    <div class="menu__item-divider"></div>
-                    <div class="menu__item-price">
-                        <div class="menu__item-cost">Цена:</div>
-                        <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
-                    </div>
-                `; //Наполнение контентом с подставлением свойств класса
-            this.parent.append(element); //вставка элемента в родителя
-        }
+        // render() {
+        //     const element = document.createElement('div'); //создание элемента
+        //     // Проверка rest оператора если он пуст то ставится значение по умолчанию если нет то формируется массив классов
+        //     if(this.classes.length === 0){
+        //         this.element = 'menu__item';
+        //         element.classList.add(this.element);
+        //     } else {
+        //         this.classes.forEach(className => element.classList.add(className));
+        //     } 
+        //     element.innerHTML = `
+        //             <img src="${this.src}" alt="${this.alt}">
+        //             <h3 class="menu__item-subtitle">Меню ${this.title}</h3>
+        //             <div class="menu__item-descr">${this.text}</div>
+        //             <div class="menu__item-divider"></div>
+        //             <div class="menu__item-price">
+        //                 <div class="menu__item-cost">Цена:</div>
+        //                 <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
+        //             </div>
+        //         `; //Наполнение контентом с подставлением свойств класса
+        //     this.parent.append(element); //вставка элемента в родителя
+        // }
     }
+    // функция, которая достает данные из базы
+    const getResource = async (url) => {
+        const res = await fetch(url);
+        if(!res.ok){ //выброс ошибки в случае провального запроса
+            throw new Error(`Could not fetch ${url}, status: ${res.status}}`);
+        }
+        return await res.json();
+    };
+    //Добавление товаров на сайт
+    // getResource('http://localhost:3000/menu')
+    //     .then(data => {
+    //         data.forEach(({img, altimg, title, descr, price}) => {
+    //             new Card(img, altimg, title, descr, price, '.menu .container').render();
+    //         });
+    //     });
+    
+    //Второй способ
+    getResource('http://localhost:3000/menu')
+        .then(data => createCard(data));
 
-    //создание объектов класса (новых карточек)
-    new Card(
-        "img/tabs/vegy.jpg", 
-        "vegy", 
-        '"Фитнес"', 
-        'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-        9,
-        ".menu .container",
-        'menu__item'
-    ).render();
-    new Card(
-        "img/tabs/elite.jpg", 
-        "elite", 
-        '"Премиум"', 
-        'В меню "Премиум" мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        5,
-        ".menu .container",
-        'menu__item'
-    ).render();
-    new Card(
-        "img/tabs/post.jpg", 
-        "post", 
-        '"Постное"', 
-        'Меню "Постное" - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-        7,
-        ".menu .container",
-        'menu__item'
-    ).render();
+    function createCard(data) {
+        data.forEach(({img, altimg, title, descr, price}) =>{
+            const element = document.createElement('div');
+            element.classList.add('menu__item');
+            element.innerHTML = `
+                <img src="${img}" alt="${altimg}">
+                <h3 class="menu__item-subtitle">Меню ${title}</h3>
+                <div class="menu__item-descr">${descr}</div>
+                <div class="menu__item-divider"></div>
+                <div class="menu__item-price">
+                    <div class="menu__item-cost">Цена:</div>
+                    <div class="menu__item-total"><span>${price *= 27}</span> грн/день</div>
+                </div>
+            `;
 
+            document.querySelector('.menu .container').append(element);
+        });
+    }
 
     //forms
 
@@ -224,10 +232,23 @@ window.addEventListener('DOMContentLoaded', ()=>{
     };
 
     forms.forEach(item => {
-        postData(item); //подвязка функции на все формы
+        bindPostData(item); //подвязка функции на все формы
     });
 
-    function postData(form) { //функция отправки данных с формы
+    const postData = async (url, data) => {
+        const res = await fetch(url, {
+            method: 'POST', //метод передачи данных
+            headers: { //заголовки для JSON
+                'Content-type' :  'application/json'
+            },
+            body: data //данные из формы в JSON
+        });
+
+        return await res.json();
+    };
+
+
+    function bindPostData(form) { //функция отправки данных с формы
         form.addEventListener('submit', (e) =>{ //обработчик на форму (отправить)
             e.preventDefault(); //убрать дефолтное поведение
             
@@ -241,20 +262,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
             form.insertAdjacentElement('afterend', statusMess);
 
             const formData = new FormData(form); // объект для передачи данных форм на сервер
+            //Собираем все данные с формы в массив массивов, затем преобразуем его в объект и только потом в JSON
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
 
-            const object = {};
-            formData.forEach(function(value, key){
-                object[key] = value; //запись данных формы в объект в формате ключ значение
-            });
-
-            fetch('server1.php', { //отправка данных с помощью fetch
-                method: 'POST', //метод передачи данных
-                headers: { //заголовки для JSON
-                    'Content-type' :  'application/json'
-                },
-                body: JSON.stringify(object) //данные из формы в JSON
-            })
-            .then(data => data.text()) //Получаем данные в текстовом виде 
+            postData('http://localhost:3000/requests', json)
             .then(data =>{ //выводим
                 console.log(data);
                 showThanksModal(message.success);
@@ -292,6 +303,5 @@ window.addEventListener('DOMContentLoaded', ()=>{
             closeModal();
         }, 4000); //устанавливаем задержку удаления сообщения модального
     }
-
   
 });
