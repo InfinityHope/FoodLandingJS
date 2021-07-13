@@ -267,4 +267,60 @@ window.addEventListener('DOMContentLoaded', ()=>{
         }, 4000); //устанавливаем задержку удаления сообщения модального
     }
   
+
+    //slider
+
+    //Получить все элементы для работы
+    //Индекс, который определяет слайд
+    //написание функции, которая будет показывать слайд
+
+    const slides = document.querySelectorAll('.offer__slide'), //слайды
+          prev = document.querySelector('.offer__slider-prev'), //кнопка назад
+          next = document.querySelector('.offer__slider-next'), //кнопка вперед 
+          total = document.querySelector('#total'), //всего слайдов
+          current = document.querySelector('#current'); //текущий слайд
+
+    let index = 1; //индекс слайда
+    showSlides(index);//вызов функции для показа первого слайда
+
+    if(slides.length < 10) { //проверка если слайдов меньше 10 то подставить 0 в общее кол-во
+        total.textContent  = getZero(slides.length);
+    } else {
+        total.textContent  = slides.length;
+    }
+
+    function showSlides(n){
+
+        if(n>slides.length) {
+            index = 1;
+        } //проверка на индекс если он равен кол-ву слайдов, то возвращаем его к 1
+        
+        if(n < 1){ //Обратная ситуация
+            index = slides.length;
+        }
+        //Прячем слайды и показываем только 1 
+        slides.forEach(slide => slide.classList.add('hide'));
+        slides[index - 1].classList.remove('hide');
+        slides[index - 1].classList.add('show');
+
+        //проверка если слайдов меньше 10 то подставить 0 к текущему слайду
+        if(slides.length < 10) {
+            current.textContent  = getZero(index);
+        } else {
+            current.textContent  = index;
+        }
+
+    }
+    //функция которая меняет индекс
+    function plusSlide(n) {
+        showSlides(index += n);
+    }
+
+    prev.addEventListener('click', () =>{
+        plusSlide(-1);
+    });
+
+    next.addEventListener('click', () =>{
+        plusSlide(+1);
+    });
 });
