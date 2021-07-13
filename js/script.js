@@ -96,9 +96,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     //Modal
 
     const modal = document.querySelector('.modal'), //обертка модального окна
-          close = document.querySelector('[data-close]'), //кнопка закрытия модального окна
           open = document.querySelectorAll('[data-modal]'), //кнопка окрытия модального окна
-          modalTimerId = setTimeout(openModal, 3000); //Таймер появления модального окна
+          modalTimerId = setTimeout(openModal, 50000); //Таймер появления модального окна
         
     function openModal() { //функция показа модального окна
         modal.classList.toggle('show');
@@ -114,11 +113,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
     open.forEach(item =>{
         item.addEventListener('click', openModal);
     });
-    close.addEventListener('click', closeModal);
     
-    //Обработчик события на закрытие по клику на подложку (вне модального окна)
+    //Обработчик события на закрытие по клику на подложку (вне модального окна) или по кнопке
     modal.addEventListener('click', (e)=>{
-        if(e.target === modal){
+        if(e.target === modal || e.target.getAttribute('data-close') == ''){
             closeModal();
         }
     });
@@ -218,7 +216,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     const forms = document.querySelectorAll('form'); // формы
 
     const message = {
-        loading: 'Загрузка',
+        loading: 'icons/spinner.svg',
         success: 'Спасибо, мы скоро с вами свяжемся',
         failure: 'Что-то пошло не так...'
     };
@@ -231,10 +229,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
         form.addEventListener('submit', (e) =>{ //обработчик на форму (отправить)
             e.preventDefault(); //убрать дефолтное поведение
 
-            const statusMess = document.createElement('div');
-            statusMess.classList.add('status');
-            statusMess.textContent = message.loading;
-            form.append(statusMess);
+            const statusMess = document.createElement('img');
+            statusMess.src = message.loading;
+            statusMess.style.cssText = `
+                display: block;
+                margin: 0 auto;            
+            `;
+            form.insertAdjacentElement('afterend', statusMess);
 
             const request = new XMLHttpRequest(); //объект запроса
             request.open('POST', 'server.php'); //настройки
@@ -253,16 +254,37 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
             request.addEventListener('load', () =>{ //обработчик на отслеживание статуса
                 if(request.status === 200){
-                    console.log(request.response);
-                    statusMess.textContent = message.success;
+                    showThanksModal(message.success);
                     form.reset(); //очистка форм
-                    setTimeout(() =>{
-                        statusMess.remove(); //удаление сообщения спустя 2 сек
-                    }, 2000);
+                    statusMess.remove(); //удаление сообщения спустя 2 сек
                 } else {
-                    statusMess.textContent = message.failure; //ошибка
+                    showThanksModal(message.failure);
                 }
             });
         });
+    }
+
+    function showThanksModal(message) {
+        const prevModalDialog = document.querySelector('.modal__dialog'); //Получаем контент модального окна
+
+        prevModalDialog.classList.add('hide'); //прячем его
+        openModal();//вызываем функцию открытия окна без контента
+
+        const thanksModal = document.createElement('div'); //создаем новый контейнер для сообщения
+        thanksModal.classList.add('modal__dialog'); //добавляем ему класс обертки контента
+        thanksModal.innerHTML = `
+            <div class="modal__content">
+                <div class="modal__close" data-close>&times;</div>
+                <div class="modal__title">${message}</div>
+            </div> 
+        `;//верстаем сообщение
+
+        document.querySelector('.modal').append(thanksModal); //добавляем его в модальное окно
+        setTimeout(() => {
+            thanksModal.remove();
+            prevModalDialog.classList.add('show');
+            prevModalDialog.classList.remove('hide');
+            closeModal();
+        }, 4000); //устанавливаем задержку удаления сообщения модального
     }
 });
