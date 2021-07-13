@@ -211,4 +211,58 @@ window.addEventListener('DOMContentLoaded', ()=>{
         ".menu .container",
         'menu__item'
     ).render();
+
+
+    //forms
+
+    const forms = document.querySelectorAll('form'); // формы
+
+    const message = {
+        loading: 'Загрузка',
+        success: 'Спасибо, мы скоро с вами свяжемся',
+        failure: 'Что-то пошло не так...'
+    };
+
+    forms.forEach(item => {
+        postData(item); //подвязка функции на все формы
+    });
+
+    function postData(form) { //функция отправки данных с формы
+        form.addEventListener('submit', (e) =>{ //обработчик на форму (отправить)
+            e.preventDefault(); //убрать дефолтное поведение
+
+            const statusMess = document.createElement('div');
+            statusMess.classList.add('status');
+            statusMess.textContent = message.loading;
+            form.append(statusMess);
+
+            const request = new XMLHttpRequest(); //объект запроса
+            request.open('POST', 'server.php'); //настройки
+
+            request.setRequestHeader('Content-type', 'application/json'); //заголовки запроса
+            const formData = new FormData(form); // объект для передачи данных форм на сервер
+
+            const object = {};
+            formData.forEach(function(value, key){
+                object[key] = value; //запись данных формы в объект в формате ключ значение
+            });
+
+            const json = JSON.stringify(object); //в JSON
+
+            request.send(json); //отправка
+
+            request.addEventListener('load', () =>{ //обработчик на отслеживание статуса
+                if(request.status === 200){
+                    console.log(request.response);
+                    statusMess.textContent = message.success;
+                    form.reset(); //очистка форм
+                    setTimeout(() =>{
+                        statusMess.remove(); //удаление сообщения спустя 2 сек
+                    }, 2000);
+                } else {
+                    statusMess.textContent = message.failure; //ошибка
+                }
+            });
+        });
+    }
 });
