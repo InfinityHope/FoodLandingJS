@@ -278,49 +278,71 @@ window.addEventListener('DOMContentLoaded', ()=>{
           prev = document.querySelector('.offer__slider-prev'), //кнопка назад
           next = document.querySelector('.offer__slider-next'), //кнопка вперед 
           total = document.querySelector('#total'), //всего слайдов
-          current = document.querySelector('#current'); //текущий слайд
+          current = document.querySelector('#current'),//текущий слайд
+          slidesWrapper = document.querySelector('.offer__slider-wrapper'), //Обертка всего слайдера
+          slidesField = document.querySelector('.offer__slider-inner'), //Обертка слайдов
+          width = window.getComputedStyle(slidesWrapper).width; //Ширина обертки слайдера
 
-    let index = 1; //индекс слайда
-    showSlides(index);//вызов функции для показа первого слайда
+    let index = 1,
+        offset = 0; //индекс слайда
 
     if(slides.length < 10) { //проверка если слайдов меньше 10 то подставить 0 в общее кол-во
         total.textContent  = getZero(slides.length);
+        current.textContent = getZero(index);
     } else {
         total.textContent  = slides.length;
+        current.textContent = index;
     }
 
-    function showSlides(n){
+    slidesField.style.width = 100 * slides.length + '%'; //Устанавливаем ширину обертки по всем слайдам
+    slidesField.style.display = 'flex'; //Выставляем флекс для обертки
+    slidesField.style.transition = '0.5s'; //задержка
 
-        if(n>slides.length) {
-            index = 1;
-        } //проверка на индекс если он равен кол-ву слайдов, то возвращаем его к 1
-        
-        if(n < 1){ //Обратная ситуация
-            index = slides.length;
-        }
-        //Прячем слайды и показываем только 1 
-        slides.forEach(slide => slide.classList.add('hide'));
-        slides[index - 1].classList.remove('hide');
-        slides[index - 1].classList.add('show');
+    slidesWrapper.style.overflow = 'hidden'; //прямчем все что вне обертки
 
-        //проверка если слайдов меньше 10 то подставить 0 к текущему слайду
-        if(slides.length < 10) {
-            current.textContent  = getZero(index);
-        } else {
-            current.textContent  = index;
-        }
-
-    }
-    //функция которая меняет индекс
-    function plusSlide(n) {
-        showSlides(index += n);
-    }
-
-    prev.addEventListener('click', () =>{
-        plusSlide(-1);
+    slides.forEach(slide => {
+        slide.style.width = width; //Фиксированная ширина для всех слайдов по ширине обертки 
     });
 
-    next.addEventListener('click', () =>{
-        plusSlide(+1);
+    next.addEventListener('click', ()=> {
+        if(offset == +width.slice(0, width.length - 2) * (slides.length   - 1)){ //если дошел до последнего слайда, к началу
+            offset = 0;
+        } else { 
+            offset += +width.slice(0, width.length - 2); //прибавляем к offset ширину слайда
+        }
+        slidesField.style.transform = `translateX(-${offset}px)`; //смещаем его по переменной offset
+
+        if(index == slides.length){ //если индекс будет равен последнему слайду
+            index = 1; //выставляем его в 1
+        } else {
+            index++; //иначе прибавляем
+        }
+
+        if(slides.length < 10){ //если число слайдов меньше 10, тогда текущему значению выставляем 0
+            current.textContent = getZero(index);
+        } else {
+            current.textContent = index;
+        }
+    });
+    //аналогично, но с другими условиями
+    prev.addEventListener('click', ()=> {
+        if(offset == 0){
+            offset = +width.slice(0, width.length - 2) * (slides.length   - 1);
+        } else {
+            offset -= +width.slice(0, width.length - 2);
+        }
+        slidesField.style.transform = `translateX(-${offset}px)`;
+
+        if(index == 1){
+            index = slides.length;
+        } else {
+            index--;
+        }
+
+        if(slides.length < 10){
+            current.textContent = getZero(index);
+        } else {
+            current.textContent = index;
+        }
     });
 });
