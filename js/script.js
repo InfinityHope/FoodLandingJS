@@ -401,10 +401,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
     dots.forEach(dot => {
         dot.addEventListener('click', (e) => {
-            const slideTo = e.target.getAttribute('data-slide-to');
+            const slideTo = e.target.getAttribute('data-slide-to'); //получаем объект события и его аттрибут
 
-            index = slideTo;
-            offset = +width.slice(0, width.length - 2) * (slideTo   - 1);
+            index = slideTo; //Записываем его в индекс
+            offset = +width.slice(0, width.length - 2) * (slideTo   - 1); //изменяем оффсет и сдвигаем слайд и меняем точку
 
             slidesField.style.transform = `translateX(-${offset}px)`;
 
