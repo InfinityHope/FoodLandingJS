@@ -275,6 +275,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     //написание функции, которая будет показывать слайд
 
     const slides = document.querySelectorAll('.offer__slide'), //слайды
+          slider = document.querySelector('.offer__slider'),
           prev = document.querySelector('.offer__slider-prev'), //кнопка назад
           next = document.querySelector('.offer__slider-next'), //кнопка вперед 
           total = document.querySelector('#total'), //всего слайдов
@@ -283,8 +284,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
           slidesField = document.querySelector('.offer__slider-inner'), //Обертка слайдов
           width = window.getComputedStyle(slidesWrapper).width; //Ширина обертки слайдера
 
-    let index = 1,
-        offset = 0; //индекс слайда
+    let index = 1,//индекс слайда
+        offset = 0; //Переменная по которой сдвигается слайдер
 
     if(slides.length < 10) { //проверка если слайдов меньше 10 то подставить 0 в общее кол-во
         total.textContent  = getZero(slides.length);
@@ -304,6 +305,64 @@ window.addEventListener('DOMContentLoaded', ()=>{
         slide.style.width = width; //Фиксированная ширина для всех слайдов по ширине обертки 
     });
 
+    slider.style.position = 'relative';
+    
+    const indicators = document.createElement('ol'), //Массив точек и список
+          dots = [];
+
+    indicators.classList.add('carousel-dots');
+    indicators.style.cssText = `
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 15;
+        display: flex;
+        justify-content: center;
+        margin-right: 15%;
+        margin-left: 15%;
+        list-style: none;
+    `;
+    slider.append(indicators); //добавление точек к слайдеру
+
+    for (let i = 0; i < slides.length; i++){
+        const dot = document.createElement('li'); //создание точек по кол-ву слайдов
+        dot.setAttribute('data-slide-to', i + 1); //установка аттрибута (слайд = точка)
+        dot.style.cssText = `
+            box-sizing: content-box;
+            flex: 0 1 auto;
+            width: 30px;
+            height: 6px;
+            margin-right: 3px;
+            margin-left: 3px;
+            cursor: pointer;
+            background-color: #fff;
+            background-clip: padding-box;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            opacity: .5;
+            transition: opacity .6s ease;
+        `;
+        if(i == 0) {
+            dot.style.opacity = 1; //Для первой точки opacity 1 при загрузке стр
+        }
+        indicators.append(dot); //аппендим точки 
+        dots.push(dot); //заносим их в массив для дальнейшей работы с ними
+    }
+    //Функция нуля перед индексом
+    const  indexZero = (currentSlide) =>{
+        if(slides.length < 10){
+            currentSlide.textContent = getZero(index);
+        } else {
+            currentSlide.textContent = index;
+        }
+    };
+    //изменение стиля точек при выбранном слайде
+    const dotOpacityTo = () => {
+        dots.forEach(dot => dot.style.opacity = '.5');
+        dots[index - 1].style.opacity = 1;
+    };
+
     next.addEventListener('click', ()=> {
         if(offset == +width.slice(0, width.length - 2) * (slides.length   - 1)){ //если дошел до последнего слайда, к началу
             offset = 0;
@@ -318,11 +377,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
             index++; //иначе прибавляем
         }
 
-        if(slides.length < 10){ //если число слайдов меньше 10, тогда текущему значению выставляем 0
-            current.textContent = getZero(index);
-        } else {
-            current.textContent = index;
-        }
+        indexZero(current);
+        dotOpacityTo();
     });
     //аналогично, но с другими условиями
     prev.addEventListener('click', ()=> {
@@ -339,10 +395,21 @@ window.addEventListener('DOMContentLoaded', ()=>{
             index--;
         }
 
-        if(slides.length < 10){
-            current.textContent = getZero(index);
-        } else {
-            current.textContent = index;
-        }
+        indexZero(current);
+        dotOpacityTo();
+    });
+
+    dots.forEach(dot => {
+        dot.addEventListener('click', (e) => {
+            const slideTo = e.target.getAttribute('data-slide-to');
+
+            index = slideTo;
+            offset = +width.slice(0, width.length - 2) * (slideTo   - 1);
+
+            slidesField.style.transform = `translateX(-${offset}px)`;
+
+            indexZero(current);
+            dotOpacityTo();
+        });
     });
 });
