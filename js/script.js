@@ -136,31 +136,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
             window.removeEventListener('scroll', showModalByScroll());//удаление обработчика события по завершении скролла
         }
     }
-    //Показ по завершении скролла
-    window.addEventListener('scroll', showModalByScroll());
+    
+    window.addEventListener('scroll', showModalByScroll()); //Показ по завершении скролла
 
-
-    //Class Card
-
-    //Создание класса карточки
-    class Card {
-        constructor (src, alt, title, text, price, parentSelector, ...classes){ //Создание конструктора свойств карточки
-            this.src = src;
-            this.alt = alt;
-            this.title = title;
-            this.text = text;
-            this.price = price;
-            this.classes = classes; //rest оператор
-            this.parent = document.querySelector(parentSelector); //свойство родитель (элемент родитель в HTML структуре)
-            this.transfer = 27; //гривна
-            this.changeToUAH(); 
-        }
-        //метод который переводит доллар в гривну   
-        changeToUAH() {
-            this.price = this.price * this.transfer;
-        }
-    }
-    // axios 
+    // axios и создание карточек
 
     axios.get('http://localhost:3000/menu')
         .then(data => createCard(data));
@@ -230,7 +209,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
             postData('http://localhost:3000/requests', json)
             .then(data =>{ //выводим
-                console.log(data);
                 showThanksModal(message.success);
                 statusMess.remove(); //удаление спиннера
             })
@@ -363,11 +341,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
         dots[index - 1].style.opacity = 1;
     };
 
+    const deleteNotDigits = str => +str.replace(/\D/g, '');
+
     next.addEventListener('click', ()=> {
-        if(offset == +width.slice(0, width.length - 2) * (slides.length   - 1)){ //если дошел до последнего слайда, к началу
+        if(offset == deleteNotDigits(width) * (slides.length   - 1)){ //если дошел до последнего слайда, к началу
             offset = 0;
         } else { 
-            offset += +width.slice(0, width.length - 2); //прибавляем к offset ширину слайда
+            offset += deleteNotDigits(width); //прибавляем к offset ширину слайда
         }
         slidesField.style.transform = `translateX(-${offset}px)`; //смещаем его по переменной offset
 
@@ -383,9 +363,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
     //аналогично, но с другими условиями
     prev.addEventListener('click', ()=> {
         if(offset == 0){
-            offset = +width.slice(0, width.length - 2) * (slides.length   - 1);
+            offset = deleteNotDigits(width) * (slides.length   - 1);
         } else {
-            offset -= +width.slice(0, width.length - 2);
+            offset -= deleteNotDigits(width);
         }
         slidesField.style.transform = `translateX(-${offset}px)`;
 
@@ -404,7 +384,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
             const slideTo = e.target.getAttribute('data-slide-to'); //получаем объект события и его аттрибут
 
             index = slideTo; //Записываем его в индекс
-            offset = +width.slice(0, width.length - 2) * (slideTo   - 1); //изменяем оффсет и сдвигаем слайд и меняем точку
+            offset = deleteNotDigits(width) * (slideTo   - 1); //изменяем оффсет и сдвигаем слайд и меняем точку
 
             slidesField.style.transform = `translateX(-${offset}px)`;
 
